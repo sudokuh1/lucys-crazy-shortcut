@@ -1,35 +1,27 @@
-# Lucy’s Crazy Shortcut — Bangkok Ride
+# Lucy · Bangkok Rush
 
-A mobile-first 3D scooter runner through a stylized Bangkok. Static HTML, CSS and JavaScript with a locally vendored Three.js renderer. Original procedural models, Canvas textures and Web Audio. No build step, backend, external asset service or API keys.
+A mobile 3D scooter runner through Bangkok. Static HTML, CSS, JavaScript and locally vendored Three.js. No build step or external runtime services.
 
 ## Play
 
-Swipe left/right anywhere on the game surface to change lanes. Swipe up to jump over cones and potholes. Large on-screen buttons and arrow keys / A, D, W, Space are also supported. P/Escape pauses. The first ride includes an interactive three-gesture tutorial.
+Thai is the default language. The header language selector switches between Thai and English and saves the preference locally.
 
-At a junction, follow the large arrow by swiping or tapping the corresponding direction. Turns award 250 points. A missed turn is assisted. Shortcut phases add traffic and award 500 points for surviving. Collect ten hearts for seven seconds of double points; consecutive pickups raise the multiplier. Three collisions end the ride. Best score and tutorial completion persist in localStorage. Sound is opt-in.
+Swipe anywhere in the game: left/right to change lanes, up to jump, down to duck under overhead barriers. Four introductory gestures teach the controls. There are no driving buttons. Arrow keys and A/D/W/S also work; Space jumps and P/Escape pauses.
 
-## Run
+At a junction, swipe in the displayed direction before reaching the corner. The input is queued; the actual road and scenery follow a quarter-circle bend. A missed turn costs one hull point. Coins build a double-score bonus. Cars move at individual speeds and animate their wheels and suspension. Near misses and completed turns award points. Three hits end the ride. Scores and preferences are stored per browser; no shared leaderboard is configured.
 
-Run `python3 -m http.server 8000` from the project root and open `http://localhost:8000`. WebGL is required. Current mobile Safari and Chrome support it.
+## Run and publish
 
-## Deploy
+Run `python3 -m http.server 8000` and open `http://localhost:8000`. WebGL is required. GitHub Pages serves the repository root from main.
 
-GitHub Pages: Settings → Pages → Deploy from a branch → main → / (root). All runtime dependencies are included in the repository.
+## Rendering and mobile input
 
-## Mobile rendering
+The viewport follows visualViewport and safe-area insets. Pointer Events recognize one action per swipe across the game. The HUD and notifications stay at the edges. World geometry uses a shared centerline and a moving coordinate frame through turns. Street meshes use instancing; repeated traffic models share cached geometry. Rendering density adapts to sustained load. Steering uses a frame-rate-independent damped spring.
 
-The layout follows `visualViewport` and safe-area insets, reserves space above browser overlays, and prevents page scrolling inside the game. Pointer Events recognize one action per swipe over the entire play area. Camera distance adapts to narrow portrait screens. Device pixel ratio is capped at 1.65. Static scenery is merged, traffic models share cached geometry, and lighting uses inexpensive blob shadows. Animation is delta-time based. The game pauses when the tab is hidden.
+## Checks
+
+With Playwright and Chromium available, run `node tests/browser-smoke.cjs`. Optional environment variables: GAME_URL (default http://127.0.0.1:8000) and CHROME_PATH. Tests cover native touch gestures in four directions, Thai/English persistence, queued turns and road curvature, overhead collision clearance, absence of driving buttons/hearts, and JavaScript errors.
 
 ## Third-party code
 
-`vendor/three.min.js`: Three.js 0.160.1, MIT license. See `vendor/THREE-LICENSE.txt`. Models and textures are generated locally by the game code.
-
-## Motion and performance
-
-Traffic and scenery share forward world motion. Lane changes use an analytic damped spring so steering takes the same time at different frame rates. Road vertices reuse typed buffers, the HUD refreshes at 10 Hz, and sustained rendering pressure lowers pixel density gradually to a minimum of one. A textured road, softer contact shadows and smoother rider reactions provide visual feedback without post-processing.
-
-## Regression checks
-
-With Playwright and its Chromium browser available, serve this directory and run `node tests/browser-smoke.cjs`. Set `GAME_URL` to change the default `http://127.0.0.1:8000`; set `CHROME_PATH` to use an installed Chromium executable. The checks cover forward scenery motion, steering at 30/60/120 Hz, native emulated touch gestures, turns, collisions, restart, persistent local highscore and mobile control clearance.
-
-Scores are stored per browser. A shared leaderboard is not configured.
+Three.js 0.160.1 is included under the MIT license; see vendor/THREE-LICENSE.txt. Models and textures are generated locally by the game code.
