@@ -23,3 +23,13 @@ The layout follows `visualViewport` and safe-area insets, reserves space above b
 ## Third-party code
 
 `vendor/three.min.js`: Three.js 0.160.1, MIT license. See `vendor/THREE-LICENSE.txt`. Models and textures are generated locally by the game code.
+
+## Motion and performance
+
+Traffic and scenery share forward world motion. Lane changes use an analytic damped spring so steering takes the same time at different frame rates. Road vertices reuse typed buffers, the HUD refreshes at 10 Hz, and sustained rendering pressure lowers pixel density gradually to a minimum of one. A textured road, softer contact shadows and smoother rider reactions provide visual feedback without post-processing.
+
+## Regression checks
+
+With Playwright and its Chromium browser available, serve this directory and run `node tests/browser-smoke.cjs`. Set `GAME_URL` to change the default `http://127.0.0.1:8000`; set `CHROME_PATH` to use an installed Chromium executable. The checks cover forward scenery motion, steering at 30/60/120 Hz, native emulated touch gestures, turns, collisions, restart, persistent local highscore and mobile control clearance.
+
+Scores are stored per browser. A shared leaderboard is not configured.
