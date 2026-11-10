@@ -1,23 +1,25 @@
-# Lucy’s Crazy Shortcut — Bangkok Rush
+# Lucy’s Crazy Shortcut — Bangkok Ride
 
-A three-lane scooter runner with a rear chase camera, perspective road, original Canvas artwork and procedural Web Audio. Built with vanilla HTML, CSS and JavaScript. No dependencies, build step, backend or external assets.
+A mobile-first 3D scooter runner through a stylized Bangkok. Static HTML, CSS and JavaScript with a locally vendored Three.js renderer. Original procedural models, Canvas textures and Web Audio. No build step, backend, external asset service or API keys.
 
 ## Play
 
-Swipe left/right or use A/D and arrow keys to dodge. Swipe up, press Up/W/Space, or tap Jump to clear cones and potholes. Cars and tuk-tuks must be dodged. Three hits end the ride. P/Escape or the pause button pauses; hiding the tab also pauses.
+Swipe left/right anywhere on the game surface to change lanes. Swipe up to jump over cones and potholes. Large on-screen buttons and arrow keys / A, D, W, Space are also supported. P/Escape pauses. The first ride includes an interactive three-gesture tutorial.
 
-Collect ten hearts or snacks to trigger seven seconds of double points. Consecutive pickups increase the score multiplier. Near misses award 50 points. Shortcut events start after twelve seconds and award 500 points for surviving. Highscores are stored in localStorage.
+At a junction, follow the large arrow by swiping or tapping the corresponding direction. Turns award 250 points. A missed turn is assisted. Shortcut phases add traffic and award 500 points for surviving. Collect ten hearts for seven seconds of double points; consecutive pickups raise the multiplier. Three collisions end the ride. Best score and tutorial completion persist in localStorage. Sound is opt-in.
 
-Sound is opt-in. Enable it with the Sound button for the engine, wind, arcade rhythm, horns and gameplay effects.
+## Run
 
-## Local development
+Run `python3 -m http.server 8000` from the project root and open `http://localhost:8000`. WebGL is required. Current mobile Safari and Chrome support it.
 
-Run `python3 -m http.server 8000` and open `http://localhost:8000`. There are no package installation steps.
+## Deploy
 
-## Hosting
+GitHub Pages: Settings → Pages → Deploy from a branch → main → / (root). All runtime dependencies are included in the repository.
 
-Serve the repository root as a static site. GitHub Pages: Settings → Pages → Deploy from a branch → main → / (root).
+## Mobile rendering
 
-## Rendering
+The layout follows `visualViewport` and safe-area insets, reserves space above browser overlays, and prevents page scrolling inside the game. Pointer Events recognize one action per swipe over the entire play area. Camera distance adapts to narrow portrait screens. Device pixel ratio is capped at 1.65. Static scenery is merged, traffic models share cached geometry, and lighting uses inexpensive blob shadows. Animation is delta-time based. The game pauses when the tab is hidden.
 
-World-space objects use a shared perspective projection for the road, traffic and scenery. Collisions use lane position and longitudinal distance, independent of screen resolution. Canvas output uses device pixel ratio capped at two. Movement uses delta time and requestAnimationFrame. Mobile controls use Pointer Events with touch scrolling disabled inside the game.
+## Third-party code
+
+`vendor/three.min.js`: Three.js 0.160.1, MIT license. See `vendor/THREE-LICENSE.txt`. Models and textures are generated locally by the game code.
