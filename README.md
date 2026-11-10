@@ -1,20 +1,23 @@
-# Lucy’s Crazy Shortcut
+# Lucy’s Crazy Shortcut — Bangkok Rush
 
-A mobile-first three-lane scooter arcade game. Original Canvas artwork, vanilla JavaScript, no dependencies or build step.
+A three-lane scooter runner with a rear chase camera, perspective road, original Canvas artwork and procedural Web Audio. Built with vanilla HTML, CSS and JavaScript. No dependencies, build step, backend or external assets.
 
-## Run locally
+## Play
 
-Run `python3 -m http.server 8000` in this directory and open `http://localhost:8000`.
+Swipe left/right or use A/D and arrow keys to dodge. Swipe up, press Up/W/Space, or tap Jump to clear cones and potholes. Cars and tuk-tuks must be dodged. Three hits end the ride. P/Escape or the pause button pauses; hiding the tab also pauses.
 
-## Controls
+Collect ten hearts or snacks to trigger seven seconds of double points. Consecutive pickups increase the score multiplier. Near misses award 50 points. Shortcut events start after twelve seconds and award 500 points for surviving. Highscores are stored in localStorage.
 
-Swipe horizontally, tap the arrow buttons, or use arrow keys / A and D. Space, P or Escape pauses. Collect hearts and snacks to fill the Cute Meter for seven seconds of double points. Shortcut events begin after 18 seconds and award 300 points for surviving. The best score is stored locally. Sound is optional and starts only after enabling it.
+Sound is opt-in. Enable it with the Sound button for the engine, wind, arcade rhythm, horns and gameplay effects.
 
-## GitHub Pages
+## Local development
 
-1. Create a public repository named `lucys-crazy-shortcut`.
-2. Upload `index.html`, `style.css`, `game.js` and this README to its root on `main`.
-3. In Settings → Pages, choose **Deploy from a branch**, **main**, **/ (root)** and Save.
-4. Open `https://YOUR-USERNAME.github.io/lucys-crazy-shortcut/` after deployment completes.
+Run `python3 -m http.server 8000` and open `http://localhost:8000`. There are no package installation steps.
 
-No backend, external assets, API keys or package installation required. Canvas scales to device pixel ratio; the game pauses when the tab is hidden. Current Safari and Chrome are supported.
+## Hosting
+
+Serve the repository root as a static site. GitHub Pages: Settings → Pages → Deploy from a branch → main → / (root).
+
+## Rendering
+
+World-space objects use a shared perspective projection for the road, traffic and scenery. Collisions use lane position and longitudinal distance, independent of screen resolution. Canvas output uses device pixel ratio capped at two. Movement uses delta time and requestAnimationFrame. Mobile controls use Pointer Events with touch scrolling disabled inside the game.
