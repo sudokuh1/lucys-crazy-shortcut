@@ -25,6 +25,23 @@
 .title-screen{z-index:9}.begin-button,.choice,.continue-control{position:relative;z-index:1}.begin-button{touch-action:manipulation}#game[data-motion=gentle] .rabbit img{animation:none!important}
 
 .interaction-error{position:absolute;z-index:30;left:5%;right:5%;bottom:max(18px,env(safe-area-inset-bottom));padding:16px;background:#22383d;color:#f3ead6;border:1px solid #cab992;border-radius:3px;text-align:center;line-height:1.5;font-size:14px}
+/* A fleeting presence and a gust make the scene respond to the story. */
+#passing-shadow{position:absolute;z-index:3;left:73%;top:25%;height:46%;width:11%;opacity:0;pointer-events:none;background:radial-gradient(ellipse at 50% 65%,#0b1622b5 0%,#0c182a78 27%,transparent 70%);filter:blur(9px);transform:skew(-14deg);}
+#game[data-effect=shadow] #passing-shadow{animation:passing-shadow 4.5s ease-in-out both}
+#story-darkness{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;background:#0b1822;transition:opacity 1.2s ease}
+#game[data-effect=blackout] #story-darkness{opacity:.68}
+#game[data-effect=blackout] .object{filter:brightness(.2)}
+#game[data-effect=reveal] .forest{filter:brightness(.65) saturate(.75)}
+#wind-lines{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;opacity:0}
+#game[data-effect=wind] #wind-lines{opacity:1}
+#wind-lines i{position:absolute;top:50%;left:-12%;width:20%;height:1px;background:linear-gradient(90deg,transparent,#d3d6c688,transparent);animation:wind-rush 3s linear infinite}
+#wind-lines i:nth-child(2){top:58%;animation-delay:-1.2s;width:30%}#wind-lines i:nth-child(3){top:38%;animation-delay:-2s;width:15%}#wind-lines i:nth-child(4){top:65%;animation-delay:-.5s;width:24%}
+#game[data-effect=walk] .landscape{transform:scale(1.17) translateX(-4%);transition:transform 6s ease-in-out,opacity 2.7s}
+#game[data-effect=blackout] .rabbit{animation:surprise 1.1s ease-in-out}
+#game[data-effect=shadow] .rabbit img{animation:rabbit-curious 2.5s ease-in-out infinite}
+@keyframes passing-shadow{0%{opacity:0;transform:translateX(0) skew(-14deg)}25%{opacity:.75}75%{opacity:.65}100%{opacity:0;transform:translateX(65%) skew(-14deg)}}
+@keyframes wind-rush{from{transform:translateX(0)}to{transform:translateX(650%)}}
+@media(max-width:700px){#passing-shadow{left:76%;width:18%;top:29%}}
 </style>
 </head>
 <body>
@@ -32,7 +49,7 @@
  <div class="world" aria-hidden="true"><div class="landscape ruins"></div><div class="landscape forest"></div><div class="mist mist-back"></div><div class="moonlight"></div><div class="dust" id="dust"></div><div class="ground-shade"></div></div>
  <div id="trail" aria-hidden="true"><span>∴</span><span>∴</span><span>∴</span><span>∴</span></div>
  <div id="lantern-glow" aria-hidden="true"></div>
- <div id="moth" aria-hidden="true"><i></i><i></i></div>
+ <div id="passing-shadow" aria-hidden="true"></div><div id="wind-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div id="story-darkness" aria-hidden="true"></div><div id="moth" aria-hidden="true"><i></i><i></i></div>
  <button id="paper" class="object" aria-label="Investigate the glowing paper" hidden><span class="paper-sheet"><i></i><i></i><i></i></span><span class="object-label">A little light</span></button>
  <div id="rabbit-position" class="rabbit-position">
   <button id="rabbit" class="rabbit" aria-label="Say hello to the little rabbit" tabindex="-1">
@@ -44,38 +61,40 @@
  <div id="title-footer"><span>WONDER WANDERS QUIETLY.</span><span>A SMALL BEGINNING <b>·</b> 1–2 MIN</span></div>
  <div id="chapter" class="chapter" hidden><span id="chapter-number">01 / 02</span><span id="chapter-name">A strange light</span></div>
  <section id="narrative" class="narrative" aria-label="Story" hidden><div class="dialogue-rule"><i></i><span id="story-label">THE QUIET WORLD</span><i></i></div><p id="dialogue" aria-live="polite" aria-atomic="true"></p><div id="choices" class="choices"></div><button id="continue" class="continue-control" hidden>Continue <span aria-hidden="true" class="line-arrow"></span></button><span id="discovery-hint" hidden>Tap the little light to look closer</span></section>
- <section id="ending" class="ending" hidden><span class="eyebrow">A LITTLE PAUSE</span><h2>Every path begins<br>with a little curiosity.</h2><p>There is more beyond these trees.<br>For now, let’s stay here a moment.</p><button id="replay" class="begin-button">Wander again <span aria-hidden="true" class="line-arrow"></span></button><button id="linger" class="resume-button">Stay a little longer</button><small>END OF THE FIRST LITTLE CHAPTER</small></section>
+ <section id="ending" class="ending" hidden><span class="eyebrow">A LITTLE PAUSE</span><h2>Some mysteries<br>are just beginning.</h2><p>The forest still has a story to tell.<br>For now, the trail ends here.</p><button id="replay" class="begin-button">Wander again <span aria-hidden="true" class="line-arrow"></span></button><button id="linger" class="resume-button">Stay a little longer</button><small>END OF THE FIRST LITTLE CHAPTER</small></section>
  <dialog id="menu"><button id="close-menu" class="close-menu" aria-label="Close menu"></button><span class="eyebrow">A MOMENT OF QUIET</span><h2>Take your time.</h2><p>Your little discoveries stay on this device.</p><button id="return" class="begin-button">Back to the story <span aria-hidden="true" class="line-arrow"></span></button><button id="restart" class="resume-button">Return to the beginning</button></dialog>
  <div id="interaction-error" class="interaction-error" role="alert" hidden>Something stopped the story from starting. Please reload the page and try again.</div><noscript><div class="no-script">This little journey needs JavaScript. Please enable it and refresh.</div></noscript>
 </main><script>window.RabbitStory={};
 (()=>{
-// Each node owns its text, timing, scene and visible reaction. Choices link nodes.
+// Short passages leave space for the world and the character to act.
 const story = {
- waking: { scene:'ruins', label:'THE QUIET WORLD', text:'The world was quiet. But not quite asleep.', duration:4500, effect:'wake', next:'glimmer' },
- glimmer: { scene:'ruins', text:'Between the old stones, something held a little light.', duration:4500, effect:'approach', hotspot:'firstChoice', next:'discover' },
- discover: { scene:'ruins', text:'A piece of paper. Waiting for someone?', effect:'discover', hotspot:'firstChoice' },
- firstChoice: { scene:'ruins', text:'Some things ask for a closer look.', checkpoint:true, effect:'paper', choices:[
-  { text:'Pick it up', icon:'', next:'pickup', remember:['discovery','paper'] },
-  { text:'Look around first', icon:'', next:'look', remember:['discovery','moth'] }
+ waking: { scene:'ruins', label:'THE QUIET WORLD', text:'At the edge of the forest, all the lights had gone out.', duration:5500, effect:'wake', next:'glimmer' },
+ glimmer: { scene:'ruins', text:'All except one.', duration:5000, effect:'approach', hotspot:'firstChoice', next:'discover' },
+ discover: { scene:'ruins', text:'A scrap of paper, glowing between the stones.', effect:'discover', hotspot:'firstChoice' },
+ firstChoice: { scene:'ruins', text:'Something moved behind the arch.', checkpoint:true, effect:'shadow', choices:[
+  { text:'Grab the paper', icon:'', next:'pickup', remember:['discovery','paper'] },
+  { text:'Look behind the arch', icon:'', next:'look', remember:['discovery','moth'] }
  ]},
- pickup: { scene:'ruins', text:'A careful paw. A very serious little nose.', duration:6000, effect:'pickup', next:'words' },
- look: { scene:'ruins', text:'A tiny moth was here first. It seemed just as curious.', duration:6500, effect:'moth', next:'mothPaper' },
- mothPaper: { scene:'ruins', text:'It settled beside the paper. A quiet introduction.', duration:4500, effect:'pickup', next:'words' },
- words: { scene:'ruins', label:'A FEW WORDS, LEFT BEHIND', text:'“Some things are harder to say than they should be.”', duration:8500, effect:'read', next:'wind' },
- wind: { scene:'ruins', text:'The wind turned the page. The rabbit strongly disagreed.', duration:6500, effect:'wind', next:'walk' },
- walk: { scene:'ruins', text:'Beyond the arch, the trees were beginning to wake.', duration:6500, effect:'walk', next:'crossing' },
- crossing: { scene:'forest', label:'THE FORGOTTEN PATH', text:'And somewhere ahead, a warmer kind of quiet.', duration:6500, effect:'crossing', next:'fork' },
- fork: { scene:'forest', text:'Two paths. Neither in a hurry.', duration:5500, effect:'fork', next:'secondChoice' },
- secondChoice: { scene:'forest', text:'A little light. Or a little mystery?', checkpoint:true, effect:'fork', choices:[
-  { text:'Follow the lanterns', icon:'', next:'lanterns', remember:['path','lanterns'] },
+ pickup: { scene:'ruins', text:'The rabbit caught it just before the wind did.', duration:5500, effect:'pickup', next:'words' },
+ look: { scene:'ruins', text:'A shadow slipped away. Then a tiny moth appeared.', duration:6500, effect:'moth', next:'mothPaper' },
+ mothPaper: { scene:'ruins', text:'It landed on the paper, as if pointing the way.', duration:4500, effect:'pickup', next:'words' },
+ words: { scene:'ruins', label:'A NOTE IN THE DARK', text:'“Some things are harder to say than they should be.”', duration:7000, effect:'read', next:'blackout' },
+ blackout: { scene:'ruins', text:'Then the light went out.', duration:5000, effect:'blackout', next:'wind' },
+ wind: { scene:'ruins', text:'The paper escaped. Naturally.', duration:5500, effect:'wind', next:'walk' },
+ walk: { scene:'ruins', text:'It flew through the arch. The rabbit followed.', duration:6000, effect:'walk', next:'crossing' },
+ crossing: { scene:'forest', label:'BEYOND THE ARCH', text:'On the other side, the forest was waiting.', duration:6000, effect:'crossing', next:'fork' },
+ fork: { scene:'forest', text:'One path held a light. On the other: fresh tracks.', duration:6000, effect:'fork', next:'secondChoice' },
+ secondChoice: { scene:'forest', text:'Which way?', checkpoint:true, effect:'fork', choices:[
+  { text:'Follow the lantern', icon:'', next:'lanterns', remember:['path','lanterns'] },
   { text:'Follow the footprints', icon:'', next:'footprints', remember:['path','footprints'] }
  ]},
- lanterns: { scene:'forest', text:'One small lantern had almost forgotten how to glow.', duration:6000, effect:'lanternApproach', next:'lanternLit' },
- lanternLit: { scene:'forest', text:'A gentle nudge. Sometimes that is enough to begin.', duration:7000, effect:'light', next:'echo' },
- footprints: { scene:'forest', text:'The tracks were small. The pile of leaves was not.', duration:6000, effect:'tracks', next:'leaves' },
- leaves: { scene:'forest', text:'A very graceful landing. If no one was looking.', duration:7000, effect:'leaves', next:'echo' },
- echo: { scene:'forest', text:state=>state.discovery==='moth'?'The little moth followed. Apparently, this was a group expedition.':'The words stayed with the rabbit, even after the paper was gone.', duration:7000, effect:'echo', next:'rest' },
- rest: { scene:'forest', text:state=>state.path==='lanterns'?'Behind the rabbit, one more light was awake.':'Behind the rabbit, a new set of little footprints.', duration:6500, effect:'rest', next:'end' },
+ lanterns: { scene:'forest', text:'The lantern flickered as the rabbit came closer.', duration:5500, effect:'lanternApproach', next:'lanternLit' },
+ lanternLit: { scene:'forest', text:'A little nudge. The flame returned.', duration:6500, effect:'light', next:'echo' },
+ footprints: { scene:'forest', text:'The tracks led straight into a pile of leaves.', duration:5500, effect:'tracks', next:'leaves' },
+ leaves: { scene:'forest', text:'The rabbit followed. Gracefully, of course.', duration:6500, effect:'leaves', next:'echo' },
+ echo: { scene:'forest', text:state=>state.discovery==='moth'?'The tiny moth was back. Had it followed the rabbit?':'For a moment, the trees seemed to hold their breath.', duration:6500, effect:'echo', next:'rest' },
+ rest: { scene:'forest', text:state=>state.path==='lanterns'?'In the lantern light, something was written on the bark.':'Beneath the leaves, something was carved into a stone.', duration:6500, effect:'rest', next:'cliffhanger' },
+ cliffhanger: { scene:'forest', label:'A LITTLE FURTHER', text:'“You were here before.”', duration:8000, effect:'reveal', next:'end' },
  end: { scene:'forest', effect:'end', end:true }
 };
 const entry = 'waking';
@@ -136,21 +155,23 @@ function pose(name='',x=55,y=61){
 function hopTo(x,y=61){pose('hopping',x,y);motionTimer=setTimeout(()=>rabbit.classList.remove('hopping'),3400);}
 function resetArt(){
  clearTimeout(motionTimer);rabbit.className='rabbit-position';rabbit.style.left='';rabbit.style.top='';
- paper.hidden=true;paper.className='object';moth.classList.remove('visible');trail.classList.remove('visible');light.classList.remove('visible');
+ $('game').dataset.effect='';paper.hidden=true;paper.className='object';moth.classList.remove('visible');trail.classList.remove('visible');light.classList.remove('visible');
 }
 function animate(effect,state){
+ $('game').dataset.effect=effect || '';
  // Reconstruct essential visual state so resuming a checkpoint is deterministic.
- const forest=['crossing','fork','lanternApproach','light','tracks','leaves','echo','rest','end'].includes(effect);
+ const forest=['crossing','fork','lanternApproach','light','tracks','leaves','echo','rest','reveal','end'].includes(effect);
  if(forest)paper.hidden=true;
  if(forest){light.classList.toggle('visible',state.path==='lanterns');trail.classList.toggle('visible',state.path==='footprints');}
  if(effect!=='moth'&&effect!=='echo')moth.classList.remove('visible');
  switch(effect){
   case 'wake':pose('curious',52,65);break;
   case 'approach':paper.hidden=false;hopTo(54,65);break;
-  case 'discover':case 'paper':paper.hidden=false;paper.className='object';pose('curious',53,65);break;
+  case 'discover':case 'paper':case 'shadow':paper.hidden=false;paper.className='object';pose('curious',53,65);break;
   case 'pickup':paper.hidden=false;paper.className='object discovered';pose('nuzzle',58,65);break;
   case 'moth':paper.className='object discovered';moth.classList.add('visible');pose('curious',55,65);break;
   case 'read':pose('',58,65);break;
+  case 'blackout':pose('surprised',58,65);break;
   case 'wind':paper.classList.add('lifted');pose('surprised',60,65);break;
   case 'walk':hopTo(76,61);break;
   case 'crossing':pose('',43,64);break;
@@ -160,7 +181,7 @@ function animate(effect,state){
   case 'tracks':trail.classList.add('visible');hopTo(42,64);break;
   case 'leaves':pose('tumble',43,64);break;
   case 'echo':pose('curious',state.path==='lanterns'?61:43,64);moth.classList.toggle('visible',state.discovery==='moth');break;
-  case 'rest':case 'end':pose('',mobile()?65:65, mobile()?74:67);break;
+  case 'rest':case 'reveal':case 'end':pose('',mobile()?65:65, mobile()?74:67);break;
  }
 }
 function greet(){rabbit.classList.remove('curious');void rabbit.offsetWidth;rabbit.classList.add('curious');clearTimeout(motionTimer);motionTimer=setTimeout(()=>rabbit.classList.remove('curious'),2600);}
