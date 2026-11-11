@@ -101,7 +101,7 @@ Object.assign(window.RabbitStory,{loadState,saveState,freshState});
 (()=>{
 // A pausable, single-timer story runner. No dependency on browser rendering.
 class SceneManager {
- constructor({nodes,state,onRender,onSave,clock=()=>performance.now(),schedule=setTimeout,cancel=clearTimeout}) {
+ constructor({nodes,state,onRender,onSave,clock=()=>performance.now(),schedule=(fn,delay)=>setTimeout(fn,delay),cancel=(id)=>clearTimeout(id)}) {
   Object.assign(this,{nodes,state,onRender,onSave,clock,schedule,cancel}); this.current=null;this.timer=null;this.paused=false;
  }
  go(id) {
@@ -176,7 +176,7 @@ const game=$('game');const menu=$('menu');
 // Handle native touch directly as well as mouse and keyboard clicks.
 function bindPress(element, action) {
  let lastTouch=0;
- const invoke=()=>{try{action();}catch(error){console.error('Story interaction failed',error);const message=$('interaction-error');message.hidden=false;}};
+ const invoke=()=>{try{action();}catch(error){console.error('Story interaction failed',error);const message=$('interaction-error');message.textContent='The story could not start (' + (error && error.message ? error.message : 'unknown error') + '). Please reload and try again.';message.hidden=false;}};
  element.addEventListener('touchend',event=>{if(event.cancelable)event.preventDefault();lastTouch=Date.now();invoke();},{passive:false});
  element.addEventListener('click',()=>{if(Date.now()-lastTouch>800)invoke();});
 }
