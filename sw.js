@@ -1,5 +1,2 @@
-const CACHE='lucy-bkk-v6';
-const SHELL=['./','./index.html','./style.css?v=6','./game.js?v=6','./install.js?v=6','./vendor/three.min.js','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png','./assets/icon-maskable.png','./assets/icon.svg'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('lucy-bkk-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||!e.request.url.startsWith(self.registration.scope))return;e.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(e.request);if(!response.ok)throw Error('Network response failed');await cache.put(e.request,response.clone());return response}catch{const cached=await cache.match(e.request);if(cached)return cached;if(e.request.mode==='navigate'){const shell=await cache.match(new URL('index.html',self.registration.scope).href);if(shell)return shell}return new Response('Offline asset unavailable',{status:503})}})())});
+self.addEventListener('install',event=>event.waitUntil(self.skipWaiting()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('lucy-bkk-'))await caches.delete(key);await self.clients.claim();await self.registration.unregister();})()));
