@@ -5,3 +5,5 @@ A small illustrated browser story. Open `index.html` in a browser or serve this 
 GitHub Pages serves the root directory from `main`. No installation or build step is required.
 
 The story continues automatically and can be advanced using Continue.
+
+The prototype includes two branching discoveries.
