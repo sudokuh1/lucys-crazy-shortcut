@@ -23,6 +23,8 @@
 /* Hand-drawn interface marks; never rendered as emoji glyphs. */
 .line-arrow{display:inline-block!important;width:24px;height:1px;background:#dbc794;position:relative;flex:none}.line-arrow::after{content:'';position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid #dbc794;border-right:1px solid #dbc794;transform:rotate(45deg)}.choice-mark{display:inline-block;width:6px;height:6px;border:1px solid #d5bf8e;transform:rotate(45deg);vertical-align:2px}.tiny-star,.title-star{display:inline-block;width:12px;height:12px;border:1px solid #d5bd86;transform:rotate(45deg)}h1 .title-star{width:18px;height:18px;top:55%}.close-menu::before,.close-menu::after{content:'';position:absolute;width:18px;height:1px;background:#e7ddc6;left:13px;top:21px;transform:rotate(45deg)}.close-menu::after{transform:rotate(-45deg)}
 .title-screen{z-index:9}.begin-button,.choice,.continue-control{position:relative;z-index:1}.begin-button{touch-action:manipulation}#game[data-motion=gentle] .rabbit img{animation:none!important}
+
+.interaction-error{position:absolute;z-index:30;left:5%;right:5%;bottom:max(18px,env(safe-area-inset-bottom));padding:16px;background:#22383d;color:#f3ead6;border:1px solid #cab992;border-radius:3px;text-align:center;line-height:1.5;font-size:14px}
 </style>
 </head>
 <body>
@@ -44,7 +46,7 @@
  <section id="narrative" class="narrative" aria-label="Story" hidden><div class="dialogue-rule"><i></i><span id="story-label">THE QUIET WORLD</span><i></i></div><p id="dialogue" aria-live="polite" aria-atomic="true"></p><div id="choices" class="choices"></div><button id="continue" class="continue-control" hidden>Continue <span aria-hidden="true" class="line-arrow"></span></button><span id="discovery-hint" hidden>Tap the little light to look closer</span></section>
  <section id="ending" class="ending" hidden><span class="eyebrow">A LITTLE PAUSE</span><h2>Every path begins<br>with a little curiosity.</h2><p>There is more beyond these trees.<br>For now, let’s stay here a moment.</p><button id="replay" class="begin-button">Wander again <span aria-hidden="true" class="line-arrow"></span></button><button id="linger" class="resume-button">Stay a little longer</button><small>END OF THE FIRST LITTLE CHAPTER</small></section>
  <dialog id="menu"><button id="close-menu" class="close-menu" aria-label="Close menu"></button><span class="eyebrow">A MOMENT OF QUIET</span><h2>Take your time.</h2><p>Your little discoveries stay on this device.</p><button id="return" class="begin-button">Back to the story <span aria-hidden="true" class="line-arrow"></span></button><button id="restart" class="resume-button">Return to the beginning</button></dialog>
- <noscript><div class="no-script">This little journey needs JavaScript. Please enable it and refresh.</div></noscript>
+ <div id="interaction-error" class="interaction-error" role="alert" hidden>Something stopped the story from starting. Please reload the page and try again.</div><noscript><div class="no-script">This little journey needs JavaScript. Please enable it and refresh.</div></noscript>
 </main><script>window.RabbitStory={};
 (()=>{
 // Each node owns its text, timing, scene and visible reaction. Choices link nodes.
@@ -171,6 +173,14 @@ const $=id=>document.getElementById(id);
 let state;
 try {state=loadState();} catch {state={};}
 const game=$('game');const menu=$('menu');
+// Handle native touch directly as well as mouse and keyboard clicks.
+function bindPress(element, action) {
+ let lastTouch=0;
+ const invoke=()=>{try{action();}catch(error){console.error('Story interaction failed',error);const message=$('interaction-error');message.hidden=false;}};
+ element.addEventListener('touchend',event=>{if(event.cancelable)event.preventDefault();lastTouch=Date.now();invoke();},{passive:false});
+ element.addEventListener('click',()=>{if(Date.now()-lastTouch>800)invoke();});
+}
+
 let gentle=state.gentle ?? matchMedia('(prefers-reduced-motion: reduce)').matches;
 function setMotion(){game.dataset.motion=gentle?'gentle':'full';$('motion').setAttribute('aria-pressed',String(gentle));$('motion-label').textContent=gentle?'gentle':'full';state.gentle=gentle;saveState(state);}
 setMotion();
@@ -188,7 +198,7 @@ function render(node){
  for(const [i,choice] of (node.choices||[]).entries()){
   const button=document.createElement('button');button.className='choice';
   const icon=document.createElement('span');icon.textContent=choice.icon;icon.setAttribute('aria-hidden','true');
-  icon.className='choice-mark';button.append(icon,document.createTextNode(choice.text));button.addEventListener('click',()=>manager.choose(i));$('choices').append(button);
+  icon.className='choice-mark';button.append(icon,document.createTextNode(choice.text));bindPress(button,()=>manager.choose(i));$('choices').append(button);
  }
  $('continue').hidden=!node.next;$('discovery-hint').hidden=!node.hotspot;
  $('paper').disabled=!node.hotspot;$('rabbit').tabIndex=0;
@@ -209,10 +219,10 @@ function title(){
  $('begin').focus();
 }
 $('resume').hidden=!state.checkpoint||state.complete;
-$('begin').addEventListener('click',()=>start());$('resume').addEventListener('click',()=>start(true));
-$('continue').addEventListener('click',()=>manager.advance());$('paper').addEventListener('click',()=>manager.discover());
+bindPress($('begin'),()=>start());bindPress($('resume'),()=>start(true));
+bindPress($('continue'),()=>manager.advance());bindPress($('paper'),()=>manager.discover());
 $('dialogue').addEventListener('click',()=>manager.advance());$('rabbit').addEventListener('click',greet);
-$('replay').addEventListener('click',()=>start());
+bindPress($('replay'),()=>start());
 $('linger').addEventListener('click',()=>{$('ending').hidden=true;game.dataset.mode='linger';$('chapter').hidden=false;$('chapter-name').textContent='A little longer';$('chapter-number').textContent='02 / 02';$('menu-button').focus();});
 $('motion').addEventListener('click',()=>{gentle=!gentle;setMotion();});
 $('menu-button').addEventListener('click',()=>{manager.pause();menu.showModal();});
